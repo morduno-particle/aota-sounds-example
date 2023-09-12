@@ -61,8 +61,8 @@ void setup()
 
     if (!SD.begin(SD_CS))
     {
-        Log.error("SD failed, or not present");
-        while(1) yield(); // don't do anything more
+        Log.error("SD failed or not present, entering Safe Mode");
+        System.enterSafeMode();
     }
     Log.info("SD OK!");
 
@@ -81,8 +81,8 @@ void setup()
     Log.info("Adafruit VS1053 Library Test");
     if (!musicPlayer.begin())
     {
-        Log.error("Couldn't find VS1053, do you have the right pins defined?");
-        while(1) yield(); // don't do anything more
+        Log.error("Couldn't find VS1053, entering Safe Mode");
+        System.enterSafeMode();
     }
     Log.info("VS1053 found");
 

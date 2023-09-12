@@ -29,3 +29,6 @@
 
 .vscode
 target
+
+# Generated source file
+src/aota-sounds-example.cpp

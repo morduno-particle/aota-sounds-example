@@ -12,7 +12,7 @@
 // Ported for Particle by ScruffR
 // Forked and ported: https://github.com/ScruffR/Adafruit_VS1053_Library
 //
-// This FW will create the following hierarchy in the micro SD card:
+// This FW will create the following hierarchy in the microSD card:
 // SD:
 //  └─── samples
 //        001.mp3
@@ -61,15 +61,16 @@ void handleAssets(spark::Vector<ApplicationAsset> assets);
 int playTrack(String num);
 int setVolume(String vol);
 
-void setup() {
+void setup()
+{
     // This is just here to make it easier to see the early log messages on
     // the USB serial debug. You probably don't want this in production code.
     waitFor(Serial.isConnected, 10000); delay(2000);
 
     if (!SD.begin(SD_CS))
     {
-        Log.error("SD failed, or not present");
-        while(1) yield(); // don't do anything more
+        Log.error("SD failed or not present, entering Safe Mode");
+        System.enterSafeMode();
     }
     Log.info("SD OK!");
 
@@ -88,16 +89,13 @@ void setup() {
     Log.info("Adafruit VS1053 Library Test");
     if (!musicPlayer.begin())
     {
-        Log.error("Couldn't find VS1053, do you have the right pins defined?");
-        while(1) yield(); // don't do anything more
+        Log.error("Couldn't find VS1053, entering Safe Mode");
+        System.enterSafeMode();
     }
     Log.info("VS1053 found");
 
     // Make a tone to indicate VS1053 is working
     musicPlayer.sineTest(0x44, 200);
-
-    // Set volume for left, right channels. lower numbers == louder volume!
-    // musicPlayer.setVolume(20, 20);
 
     pinMode(D7, OUTPUT);
 
@@ -115,8 +113,9 @@ void setup() {
     Particle.connect();
 }
 
-void loop() {
-
+void loop()
+{
+    // Wait for a command from the Cloud to start playing a track
     if (needStart && trackNumber)
     {
         char fileName[32];
@@ -174,6 +173,7 @@ void handleAssets(spark::Vector<ApplicationAsset> assets)
         int assetExists = SD.exists(path.c_str());
         if (assetExists == 0)
         {
+            // SD.open() with FILE_WRITE will create a file if it does not exist
             myFile = SD.open(path.c_str(), FILE_WRITE);
             if (myFile)
             {
@@ -198,6 +198,7 @@ void handleAssets(spark::Vector<ApplicationAsset> assets)
 
                     amountRead += count;
                 }
+                // Always close files when you're done with them
                 myFile.close();
                 Log.info("Done writing");
             }
@@ -218,7 +219,9 @@ void handleAssets(spark::Vector<ApplicationAsset> assets)
     Log.info("set assetsHandled to true");
 }
 
-int playTrack(String num) {
+// Usage: send a 3 over the Particle Console to start playing track 003.mp3
+int playTrack(String num)
+{
   int n = atoi(num);
 
   if (n > 0) {
@@ -231,6 +234,7 @@ int playTrack(String num) {
   return trackNumber;
 }
 
+// Set volume for left, right channels. lower numbers == louder volume
 int setVolume(String vol)
 {
     int volume = atoi(vol);
